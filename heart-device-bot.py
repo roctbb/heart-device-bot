@@ -80,7 +80,7 @@ def init():
             contract = Contracts(id=contract_id)
 
             if data.get('params'):
-                code = data['params'].get('code')
+                code = data['params'].get('heart_device_code')
                 if code:
                     contract.code = code
 
