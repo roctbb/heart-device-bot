@@ -208,7 +208,7 @@ def sender():
                         if contract.code in subject:
                             print(subject, contract.id)
                             attachments = get_attachments(message)
-                            send_message(contract.id, text="результаты снятия ЭЭГ", attachments=attachments)
+                            send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments)
         except Exception as e:
             print(e)
         time.sleep(60)
