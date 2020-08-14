@@ -10,9 +10,11 @@
 <div class="container">
     <h4 style="margin-top: 15px; margin-bottom: 15px;">Сердечко: настройка канала консультирования</h4>
 
+    <p>Данный интеллектуальный агент умеет автоматически забирать письма из почтового ящика <i>cardio@medsenger.ru</i> и перенаправлять их в ленту врача, если в теме письма присутствует идентификатор пациента (СНИЛС).</p>
+
     <form method="POST">
         <div class="form-group">
-            <strong>Номер прибора:</strong>
+            <strong>Идентификатор пациента (обычно - СНИЛС, указывается в настройках мобильного приложения):</strong>
             <input type="text" name="code" {% if contract.code != None %} value="{{contract.code}}" {%endif%} class="form-control"/>
         </div>
 
