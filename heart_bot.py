@@ -3,7 +3,6 @@ import time
 from threading import Thread
 from flask import Flask, request, render_template
 from config import *
-import threading
 import datetime
 from flask_sqlalchemy import SQLAlchemy
 from agents_api import *
@@ -60,6 +59,7 @@ def status():
     }
 
     return json.dumps(answer)
+
 
 
 @app.route('/init', methods=['POST'])
@@ -177,40 +177,42 @@ def setting_save():
 def index():
     return 'waiting for the thunder!'
 
+def tasks():
+    try:
+        contracts = Contracts.query.filter_by(active=True).all()
+        param = Params.query.filter_by(name='last_id').first()
+
+        last_id, messages = get_messages(param.value)
+
+        if last_id:
+            param.value = last_id
+            db.session.commit()
+
+            for contract in contracts:
+                if not contract.code:
+                    continue
+                for message in messages:
+                    hds = decode_header(message['subject'])
+
+                    if not hds:
+                        continue
+
+                    data, encoding = hds[0]
+                    if encoding:
+                        subject = data.decode(encoding)
+                    else:
+                        subject = data
+
+                    if contract.code in subject:
+                        print(subject, contract.id)
+                        attachments = get_attachments(message)
+                        send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments)
+    except Exception as e:
+        print(e)
 
 def sender():
     while True:
-        try:
-            contracts = Contracts.query.filter_by(active=True).all()
-            param = Params.query.filter_by(name='last_id').first()
-
-            last_id, messages = get_messages(param.value)
-
-            if last_id:
-                param.value = last_id
-                db.session.commit()
-
-                for contract in contracts:
-                    if not contract.code:
-                        continue
-                    for message in messages:
-                        hds = decode_header(message['subject'])
-
-                        if not hds:
-                            continue
-
-                        data, encoding = hds[0]
-                        if encoding:
-                            subject = data.decode(encoding)
-                        else:
-                            subject = data
-
-                        if contract.code in subject:
-                            print(subject, contract.id)
-                            attachments = get_attachments(message)
-                            send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments)
-        except Exception as e:
-            print(e)
+        tasks()
         time.sleep(60)
 
 
@@ -224,8 +226,8 @@ def save_message():
 
     return "ok"
 
+if __name__ == "__main__":
+    t = Thread(target=sender)
+    t.start()
 
-t = Thread(target=sender)
-t.start()
-
-app.run(port=PORT, host=HOST)
+    app.run(port=PORT, host=HOST)
