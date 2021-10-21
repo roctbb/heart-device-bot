@@ -224,6 +224,11 @@ def save_message():
     if key != APP_KEY:
         return "<strong>Некорректный ключ доступа.</strong> Свяжитесь с технической поддержкой."
 
+    if data.get('message', {}).get('attachments'):
+        for attachment in data['message']['attachments']:
+            if 'ecg_' in attachment['name']:
+                send_message(data['contract_id'], 'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ, какие препараты вы сейчас принимаете, и что предшествовало событию?', only_patient=True)
+
     return "ok"
 
 if __name__ == "__main__":
