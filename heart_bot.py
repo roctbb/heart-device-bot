@@ -5,13 +5,15 @@ from flask import Flask, request, render_template
 from config import *
 import datetime
 from flask_sqlalchemy import SQLAlchemy
-from agents_api import *
+from medsenger_api import *
 from mail_api import *
 
 app = Flask(__name__)
 db_string = "postgres://{}:{}@{}:{}/{}".format(DB_LOGIN, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_string
 db = SQLAlchemy(app)
+
+medsenger_api = AgentApiClient(APP_KEY, MAIN_HOST, debug=True)
 
 
 class Params(db.Model):
@@ -90,6 +92,9 @@ def init():
 
         db.session.commit()
 
+        medsenger_api.add_record(data.get('contract_id'), 'doctor_action',
+                                 'Подключен прибор "Сердечко".')
+
 
     except Exception as e:
         print(e)
@@ -117,6 +122,9 @@ def remove():
             print("{}: Deactivate contract {}".format(gts(), contract.id))
         else:
             print('contract not found')
+
+        medsenger_api.add_record(data.get('contract_id'), 'doctor_action',
+                                 'Отключен прибор "Сердечко".')
 
     except Exception as e:
         print(e)
@@ -206,7 +214,7 @@ def tasks():
                     if contract.code in subject:
                         print(subject, contract.id)
                         attachments = get_attachments(message)
-                        send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments)
+                        medsenger_api.send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments, send_from='patient')
     except Exception as e:
         print(e)
 
@@ -227,7 +235,7 @@ def save_message():
     if data.get('message', {}).get('attachments'):
         for attachment in data['message']['attachments']:
             if 'ecg_' in attachment['name']:
-                send_message(data['contract_id'], 'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ, какие препараты вы сейчас принимаете, и что предшествовало событию?', only_patient=True)
+                medsenger_api.send_message(data['contract_id'], 'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ, какие препараты вы сейчас принимаете, и что предшествовало событию?', only_patient=True)
 
     return "ok"
 
