@@ -3,7 +3,7 @@ import time
 from threading import Thread
 from flask import Flask, request, render_template
 from config import *
-import datetime
+from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from medsenger_api import *
 from mail_api import *
@@ -41,7 +41,7 @@ except:
 
 
 def gts():
-    now = datetime.datetime.now()
+    now = datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
 
 
