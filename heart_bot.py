@@ -222,6 +222,10 @@ def tasks():
                         print(subject, contract.id)
                         attachments = get_attachments(message)
                         medsenger_api.send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments, send_from='patient')
+
+                        medsenger_api.send_message(contract.id,
+                                                   'Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ и какие ощущения Вы испытываете?',
+                                                   only_patient=True)
     except Exception as e:
         print(e)
 
@@ -244,7 +248,7 @@ def save_message():
         for attachment in data['message']['attachments']:
             if 'ecg_' in attachment['name']:
                 medsenger_api.send_message(data['contract_id'],
-                                           'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ, какие препараты вы сейчас принимаете, и что предшествовало событию?',
+                                           'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ и какие ощущения Вы испытываете?',
                                            only_patient=True)
 
     return "ok"
