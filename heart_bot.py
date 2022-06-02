@@ -63,7 +63,6 @@ def status():
     return json.dumps(answer)
 
 
-
 @app.route('/init', methods=['POST'])
 def init():
     data = request.json
@@ -92,7 +91,10 @@ def init():
 
         db.session.commit()
 
-        medsenger_api.add_record(data.get('contract_id'), 'doctor_action',
+        medsenger_api.send_message(contract_id,
+                                   f"""Подключена интеграция с карманным монитором сердечного ритма "Сердечко". Чтобы отправить ЭКГ врачу, вам нужно: <ul><li>установить мобильное приложение ECG Mob (<a href="https://apps.apple.com/ru/app/ecg-mob/id1406511388">iOS</a> / <a href="https://play.google.com/store/apps/details?id=ru.bioss.ecgmob&hl=ru&gl=US">Android</a>);</li><li>снять ЭКГ, используя прибор и мобильное приложение;</li><li>отправить PDF файл с ЭКГ в приложение Medsenger через меню "поделиться" (на Android) или просто отправить файл на почту <strong>{contract_id}+cardio@medsenger.ru</strong> (на iOS и Android).</ul>""",
+                                   only_patient=True)
+        medsenger_api.add_record(contract_id, 'doctor_action',
                                  'Подключен прибор "Сердечко".')
 
 
@@ -185,6 +187,7 @@ def setting_save():
 def index():
     return 'waiting for the thunder!'
 
+
 def tasks():
     try:
         contracts = Contracts.query.filter_by(active=True).all()
@@ -201,22 +204,27 @@ def tasks():
                     continue
                 for message in messages:
                     hds = decode_header(message['subject'])
+                    cid = extract_contract_id(message)
 
-                    if not hds:
+                    if not hds and not cid:
                         continue
 
-                    data, encoding = hds[0]
-                    if encoding:
-                        subject = data.decode(encoding)
+                    if hds:
+                        data, encoding = hds[0]
+                        if encoding:
+                            subject = data.decode(encoding)
+                        else:
+                            subject = data
                     else:
-                        subject = data
+                        subject = ""
 
-                    if contract.code in subject:
+                    if contract.code in subject or int(cid) == contract.id:
                         print(subject, contract.id)
                         attachments = get_attachments(message)
                         medsenger_api.send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments, send_from='patient')
     except Exception as e:
         print(e)
+
 
 def sender():
     while True:
@@ -235,9 +243,12 @@ def save_message():
     if data.get('message', {}).get('attachments'):
         for attachment in data['message']['attachments']:
             if 'ecg_' in attachment['name']:
-                medsenger_api.send_message(data['contract_id'], 'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ, какие препараты вы сейчас принимаете, и что предшествовало событию?', only_patient=True)
+                medsenger_api.send_message(data['contract_id'],
+                                           'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ, какие препараты вы сейчас принимаете, и что предшествовало событию?',
+                                           only_patient=True)
 
     return "ok"
+
 
 if __name__ == "__main__":
     t = Thread(target=sender)

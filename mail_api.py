@@ -5,6 +5,20 @@ from email.message import EmailMessage
 from email.header import decode_header
 from config import *
 
+def extract_contract_id(email):
+    receivers = email.get_all('to', [])
+
+    if not receivers:
+        return None
+    name, domain = receivers[0].split('@')
+    parts = name.split('+')
+    del parts[0]
+
+    if not parts:
+        return None
+
+    return parts[0]
+
 def decode_string(value):
   if value.startswith('"=?'):
     value = value.replace('"', '')
