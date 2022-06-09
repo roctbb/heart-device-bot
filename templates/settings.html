@@ -14,8 +14,13 @@
 
     <form method="POST">
         <div class="form-group">
-            <strong>Идентификатор пациента (обычно - СНИЛС, указывается в настройках мобильного приложения):</strong>
+            <strong>Идентификатор пациента (обычно - СНИЛС, указывается в настройках мобильного приложения, опционально):</strong>
             <input type="text" name="code" {% if contract.code != None %} value="{{contract.code}}" {%endif%} class="form-control"/>
+        </div>
+
+        <div class="form-group">
+            <strong>Почта устройства (опционально):</strong>
+            <input type="text" name="email" {% if contract.email != None %} value="{{contract.email}}" {%endif%} class="form-control" />
         </div>
 
         <div class="form-group">

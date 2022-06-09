@@ -17,7 +17,7 @@ def extract_contract_id(email):
     if not parts:
         return None
 
-    return parts[0]
+    return receivers[0], parts[0]
 
 def decode_string(value):
   if value.startswith('"=?'):

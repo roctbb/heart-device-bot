@@ -25,6 +25,7 @@ class Contracts(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     active = db.Column(db.Boolean, default=True)
     code = db.Column(db.String, nullable=True)
+    email = db.Column(db.String, nullable=True)
 
 
 try:
@@ -82,8 +83,14 @@ def init():
 
             if data.get('params'):
                 code = data['params'].get('heart_device_code')
+                email = data['params'].get('heart_device_email')
                 if code:
                     contract.code = code
+
+                if email:
+                    contract.email = email
+                else:
+                    contract.email = f'cardio+{contract_id}@medsenger.ru'
 
             db.session.add(contract)
 
@@ -170,6 +177,7 @@ def setting_save():
         if query.count() != 0:
             contract = query.first()
             contract.code = request.form.get('code')
+            contract.email = request.form.get('email')
             db.session.commit()
         else:
             return "<strong>Ошибка. Контракт не найден.</strong> Попробуйте отключить и снова подключить интеллектуальный агент к каналу консультирвоания. Если это не сработает, свяжитесь с технической поддержкой."
@@ -204,7 +212,7 @@ def tasks():
                     continue
                 for message in messages:
                     hds = decode_header(message['subject'])
-                    cid = extract_contract_id(message)
+                    sender, cid = extract_contract_id(message)
 
                     if not hds and not cid:
                         continue
@@ -218,8 +226,7 @@ def tasks():
                     else:
                         subject = ""
 
-                    if contract.code in subject or int(cid) == contract.id:
-                        print(subject, contract.id)
+                    if contract.code in subject or int(cid) == contract.id or sender == contract.email:
                         attachments = get_attachments(message)
                         medsenger_api.send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments, send_from='patient')
 
