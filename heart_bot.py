@@ -78,8 +78,13 @@ def init():
             contract = query.first()
             contract.active = True
 
-            code = data['params'].get('heart_device_code')
-            email = data['params'].get('heart_device_email')
+            if data.get('params'):
+                code = data['params'].get('heart_device_code')
+                email = data['params'].get('heart_device_email')
+            else:
+                code = None
+                email = None
+
             if code:
                 contract.code = code
 
@@ -95,13 +100,16 @@ def init():
             if data.get('params'):
                 code = data['params'].get('heart_device_code')
                 email = data['params'].get('heart_device_email')
-                if code:
-                    contract.code = code
+            else:
+                code = None
+                email = None
+            if code:
+                contract.code = code
 
-                if email:
-                    contract.email = email
-                else:
-                    contract.email = f'cardio+{contract_id}@medsenger.ru'
+            if email:
+                contract.email = email
+            else:
+                contract.email = f'cardio+{contract_id}@medsenger.ru'
 
             db.session.add(contract)
 
@@ -110,7 +118,7 @@ def init():
         db.session.commit()
 
         medsenger_api.send_message(contract_id,
-                                   f"""Подключена интеграция с карманным монитором сердечного ритма "Сердечко". Чтобы отправить ЭКГ врачу, вам нужно:<br><br><ul><li>установить мобильное приложение ECG Mob (<a target="_blank" href="https://apps.apple.com/ru/app/ecg-mob/id1406511388">iOS</a> / <a target="_blank" href="https://play.google.com/store/apps/details?id=ru.bioss.ecgmob&hl=ru&gl=US">Android</a>);</li><li>снять ЭКГ, используя прибор и мобильное приложение;</li><li>отправить PDF файл с ЭКГ в приложение Medsenger через меню "поделиться" (на Android) или просто отправить файл на почту <strong>cardio+{contract_id}@medsenger.ru</strong> (на iOS и Android).</ul><br>Для удобства, адрес <strong>cardio+{contract_id}@medsenger.ru</strong> можно записать в настройках приложения ECG mob.""",
+                                   f"""Подключена интеграция с карманным монитором сердечного ритма "Сердечко". Чтобы отправить ЭКГ врачу, вам нужно:<br><br><ul><li>установить мобильное приложение ECG Mob (<a target="_blank" href="https://apps.apple.com/ru/app/ecg-mob/id1406511388">iOS</a> / <a target="_blank" href="https://play.google.com/store/apps/details?id=ru.bioss.ecgmob&hl=ru&gl=US">Android</a>);</li><li>снять ЭКГ, используя прибор и мобильное приложение;</li><li>отправить PDF файл с ЭКГ в приложение Medsenger через меню "поделиться" (на Android) или просто отправить файл на почту <strong>{contract.email}</strong> (на iOS и Android).</ul><br>Для удобства, адрес <strong>{contract.email}</strong> можно записать в настройках приложения ECG mob.""",
                                    only_patient=True)
         medsenger_api.add_record(contract_id, 'doctor_action',
                                  'Подключен прибор "Сердечко".')
