@@ -230,6 +230,7 @@ def tasks():
                 if not contract.code:
                     continue
                 for message in messages:
+
                     hds = decode_header(message['subject'])
                     sender, cid = extract_contract_id(message)
 
@@ -244,6 +245,8 @@ def tasks():
                             subject = data
                     else:
                         subject = ""
+
+                    print(contract.code, subject, cid, sender, contract.email)
 
                     if contract.code in subject or int(cid) == contract.id or sender == contract.email:
                         attachments = get_attachments(message)
