@@ -77,6 +77,17 @@ def init():
         if query.count() != 0:
             contract = query.first()
             contract.active = True
+
+            code = data['params'].get('heart_device_code')
+            email = data['params'].get('heart_device_email')
+            if code:
+                contract.code = code
+
+            if email:
+                contract.email = email
+            else:
+                contract.email = f'cardio+{contract_id}@medsenger.ru'
+
             print("{}: Reactivate contract {}".format(gts(), contract.id))
         else:
             contract = Contracts(id=contract_id)
