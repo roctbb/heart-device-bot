@@ -246,8 +246,6 @@ def tasks():
                     else:
                         subject = ""
 
-                    print(contract.code, subject, cid, sender, contract.email)
-
                     if contract.code in subject or int(cid) == contract.id or sender == contract.email:
                         attachments = get_attachments(message)
                         medsenger_api.send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments, send_from='patient')
