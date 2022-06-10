@@ -121,7 +121,7 @@ def init():
                                    f"""Подключена интеграция с карманным монитором сердечного ритма "Сердечко". Чтобы отправить ЭКГ врачу, вам нужно:<br><br><ul><li>установить мобильное приложение ECG Mob (<a target="_blank" href="https://apps.apple.com/ru/app/ecg-mob/id1406511388">iOS</a> / <a target="_blank" href="https://play.google.com/store/apps/details?id=ru.bioss.ecgmob&hl=ru&gl=US">Android</a>);</li><li>снять ЭКГ, используя прибор и мобильное приложение;</li><li>отправить PDF файл с ЭКГ в приложение Medsenger через меню "поделиться" (на Android) или просто отправить файл на почту <strong>{contract.email}</strong> (на iOS и Android).</ul><br>Для удобства, адрес <strong>{contract.email}</strong> можно записать в настройках приложения ECG mob.""",
                                    only_patient=True)
         medsenger_api.add_record(contract_id, 'doctor_action',
-                                 'Подключен прибор "Сердечко".')
+                                 f'Подключен прибор "Сердечко" {contract.code} / {contract.email}.')
 
 
     except Exception as e:
@@ -147,12 +147,14 @@ def remove():
             contract.active = False
             db.session.commit()
 
+            medsenger_api.add_record(data.get('contract_id'), 'doctor_action',
+                                     f'Отключен прибор "Сердечко" ({contract.code} / {contract.email}).')
+
             print("{}: Deactivate contract {}".format(gts(), contract.id))
         else:
             print('contract not found')
 
-        medsenger_api.add_record(data.get('contract_id'), 'doctor_action',
-                                 'Отключен прибор "Сердечко".')
+
 
     except Exception as e:
         print(e)
