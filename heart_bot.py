@@ -305,10 +305,11 @@ def receive_ecg():
         filename = file.filename
         data = file.read()
 
-        medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient', need_answer=True, attachments=[prepare_binary(filename, data)])
-
-        if not filename:
+        if not filename or not data:
             abort(422, "No filename")
+        else:
+            medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient', need_answer=True, attachments=[prepare_binary(filename, data)])
+            return 'ok'
 
     else:
         abort(422, "No file")
