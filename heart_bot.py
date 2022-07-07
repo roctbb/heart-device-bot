@@ -320,6 +320,7 @@ def receive_ecg_test():
         contract_id <input name="contract_id"><br>
         agent_token <input name="agent_token"><br>
         ecg <input name="ecg" type="file"><br>
+        <button>go</button>
     </form>
     """
 
