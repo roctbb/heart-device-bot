@@ -1,7 +1,7 @@
 import json
 import time
 from threading import Thread
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, abort
 from config import *
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -9,6 +9,7 @@ from medsenger_api import *
 from mail_api import *
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 db_string = "postgresql://{}:{}@{}:{}/{}".format(DB_LOGIN, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_string
 db = SQLAlchemy(app)
@@ -281,6 +282,46 @@ def save_message():
                                            only_patient=True)
 
     return "ok"
+
+@app.route('/api/receive', methods=['POST'])
+def receive_ecg():
+    contract_id = request.form.get('contract_id')
+
+    if not contract_id:
+        abort(422, "No contract_id")
+
+    agent_token = request.form.get('agent_token')
+
+    if not agent_token:
+        abort(422, "No agent_token")
+
+    answer = medsenger_api.get_agent_token(contract_id)
+
+    if not answer or answer.get('agent_token') != agent_token:
+        abort(422, "Incorrect token")
+
+    if 'ecg' in request.files:
+        file = request.files['ecg']
+        filename = file.filename
+        data = file.read()
+
+        medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient', need_answer=True, attachments=[prepare_binary(filename, data)])
+
+        if not filename:
+            abort(422, "No filename")
+
+    else:
+        abort(422, "No file")
+
+@app.route('/api/receive', methods=['GET'])
+def receive_ecg_test():
+    return """
+    <form method="POST" enctype="multipart/form-data">
+        contract_id <input name="contract_id"><br>
+        agent_token <input name="agent_token"><br>
+        ecg <input name="ecg" type="file"><br>
+    </form>
+    """
 
 
 if __name__ == "__main__":
