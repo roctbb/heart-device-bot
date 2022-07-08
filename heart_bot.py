@@ -1,7 +1,7 @@
 import json
 import time
 from threading import Thread
-from flask import Flask, request, render_template, abort
+from flask import Flask, request, render_template, abort, jsonify
 from config import *
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -283,6 +283,7 @@ def save_message():
 
     return "ok"
 
+
 @app.route('/api/receive', methods=['POST'])
 def receive_ecg():
     contract_id = request.form.get('contract_id')
@@ -314,6 +315,7 @@ def receive_ecg():
     else:
         abort(422, "No file")
 
+
 @app.route('/api/receive', methods=['GET'])
 def receive_ecg_test():
     return """
@@ -324,6 +326,24 @@ def receive_ecg_test():
         <button>go</button>
     </form>
     """
+
+
+@app.route('/.well-known/apple-app-site-association')
+def apple_deeplink():
+    return jsonify({
+        "applinks": {
+            "apps": [],
+            "details": [
+                {
+                    "appID": "CRF22TKXX5.ru.medsenger.heart",
+                    "paths": [
+                        "*"
+                    ]
+                }
+            ]
+        }
+    }
+    )
 
 
 if __name__ == "__main__":
