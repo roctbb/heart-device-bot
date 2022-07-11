@@ -345,6 +345,15 @@ def apple_deeplink():
     }
     )
 
+@app.route('/.well-known/assetlinks.json')
+def android_deeplink():
+    return jsonify([{
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {"namespace": "android_app", "package_name": "ru.medsenger.heart",
+                   "sha256_cert_fingerprints": ["43:B1:06:42:BF:4A:A3:51:33:02:43:7D:FB:42:BC:E5:1C:92:8B:13:BF:9D:9E:E0:F0:B5:D7:DB:3D:50:8B:50"]}
+    }]
+    )
+
 
 if __name__ == "__main__":
     t = Thread(target=sender)
