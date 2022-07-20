@@ -349,10 +349,12 @@ def apple_deeplink():
 def android_deeplink():
     return jsonify([{
         "relation": ["delegate_permission/common.handle_all_urls"],
-        "target": {"namespace": "android_app", "package_name": "ru.medsenger.heart",
-                   "sha256_cert_fingerprints": ["43:B1:06:42:BF:4A:A3:51:33:02:43:7D:FB:42:BC:E5:1C:92:8B:13:BF:9D:9E:E0:F0:B5:D7:DB:3D:50:8B:50"]}
-    }]
-    )
+        "target": {
+            "namespace": "android_app",
+            "package_name": "ru.bioss.ecgmob",
+            "sha256_cert_fingerprints": ["4F:56:2B:08:4C:6A:95:E9:4E:DA:96:B8:BA:8A:B5:EF:D5:3A:4C:6D:8D:B8:5E:DD:8F:76:AE:2A:B5:97:C1:E7"],
+        },
+    }])
 
 
 if __name__ == "__main__":
