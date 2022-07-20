@@ -350,8 +350,7 @@ def android_deeplink():
     return jsonify([{
         "relation": ["delegate_permission/common.handle_all_urls"],
         "target": {
-            "namespace": "android_app",
-            "package_name": "ru.bioss.ecgmob",
+            "namespace": "android_app", "package_name": "ru.bioss.ecgmob",
             "sha256_cert_fingerprints": ["4F:56:2B:08:4C:6A:95:E9:4E:DA:96:B8:BA:8A:B5:EF:D5:3A:4C:6D:8D:B8:5E:DD:8F:76:AE:2A:B5:97:C1:E7"],
         },
     }])
