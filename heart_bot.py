@@ -335,7 +335,7 @@ def apple_deeplink():
             "apps": [],
             "details": [
                 {
-                    "appID": "CRF22TKXX5.ru.medsenger.heart",
+                    "appID": "TR6RHMAD2G.ru.bioss.cardio",
                     "paths": [
                         "*"
                     ]
