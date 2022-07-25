@@ -163,6 +163,37 @@ def remove():
 
     return 'ok'
 
+@app.route('/order', methods=['POST'])
+def remove():
+    data = request.json
+
+    if data['order'] == 'heart_request_ecg':
+        if data['api_key'] != APP_KEY:
+            print('invalid key')
+            return 'invalid key'
+
+        try:
+            contract_id = str(data['contract_id'])
+            query = Contracts.query.filter_by(id=contract_id)
+
+            if query.count() != 0:
+                agent_token = medsenger_api.get_agent_token(contract_id)
+                info = medsenger_api.get_patient_info(contract_id)
+
+                link = f"https://heart.medsenger.ru/app?contract_id={contract_id}&birthdate={info['birthday']}&firstName={info['name'].split()[1]}&lastName={info['name'].split()[0]}&gender={info['sex']}"
+                medsenger_api.send_message(contract_id, "Пожалуйста, сделайте ЭКГ с помощью сердечка в приложении EcgMob и отправьте результат врачу.", link, "Сделать ЭКГ", only_patient=True, action_type="link")
+                return 'ok'
+            else:
+                print('contract not found')
+
+
+        except Exception as e:
+            print(e)
+        return "error"
+
+
+    return "not supported"
+
 
 @app.route('/settings', methods=['GET'])
 def settings():
@@ -327,6 +358,9 @@ def receive_ecg_test():
     </form>
     """
 
+@app.route('/app', methods=['GET'])
+def receive_ecg_test():
+    return render_template('get_app.html')
 
 @app.route('/.well-known/apple-app-site-association')
 def apple_deeplink():
