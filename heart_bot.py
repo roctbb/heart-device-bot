@@ -180,7 +180,7 @@ def order():
                 agent_token = medsenger_api.get_agent_token(contract_id)
                 info = medsenger_api.get_patient_info(contract_id)
 
-                link = f"https://heart.medsenger.ru/app/?contract_id={contract_id}&birthdate={info['birthday']}&firstName={info['name'].split()[1]}&lastName={info['name'].split()[0]}&gender={info['sex']}"
+                link = f"https://heart.medsenger.ru/app/?contract_id={contract_id}&agent_token={agent_token}&birthdate={info['birthday']}&firstName={info['name'].split()[1]}&lastName={info['name'].split()[0]}&gender={info['sex']}"
                 medsenger_api.send_message(contract_id, "Пожалуйста, сделайте ЭКГ с помощью сердечка в приложении EcgMob и отправьте результат врачу.", link, "Сделать ЭКГ", only_patient=True, action_type="url")
                 return 'ok'
             else:
