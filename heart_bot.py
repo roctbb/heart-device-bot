@@ -164,7 +164,7 @@ def remove():
     return 'ok'
 
 @app.route('/order', methods=['POST'])
-def remove():
+def order():
     data = request.json
 
     if data['order'] == 'heart_request_ecg':
@@ -359,7 +359,7 @@ def receive_ecg_test():
     """
 
 @app.route('/app', methods=['GET'])
-def receive_ecg_test():
+def app_page():
     return render_template('get_app.html')
 
 @app.route('/.well-known/apple-app-site-association')
