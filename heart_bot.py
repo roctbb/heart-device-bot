@@ -362,6 +362,11 @@ def receive_ecg_test():
 def app_page():
     return render_template('get_app.html')
 
+@app.route('/app', methods=['GET'])
+def app_page2():
+    return render_template('get_app.html')
+
+
 @app.route('/.well-known/apple-app-site-association')
 def apple_deeplink():
     return jsonify({
