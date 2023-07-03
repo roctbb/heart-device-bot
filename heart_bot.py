@@ -163,6 +163,7 @@ def remove():
 
     return 'ok'
 
+
 @app.route('/order', methods=['POST'])
 def order():
     data = request.json
@@ -181,7 +182,9 @@ def order():
                 info = medsenger_api.get_patient_info(contract_id)
 
                 link = f"https://heart.medsenger.ru/app/?contract_id={contract_id}&agent_token={agent_token['agent_token']}&birthdate={info['birthday']}&firstName={info['name'].split()[1]}&lastName={info['name'].split()[0]}&gender={info['sex']}"
-                medsenger_api.send_message(contract_id, "Пожалуйста, сделайте ЭКГ с помощью сердечка в приложении EcgMob и отправьте результат врачу.", link, "Сделать ЭКГ", only_patient=True, action_type="url")
+                medsenger_api.send_message(contract_id,
+                                           "Пожалуйста, сделайте ЭКГ с помощью сердечка в приложении EcgMob и отправьте результат врачу.",
+                                           link, "Сделать ЭКГ", only_patient=True, action_type="url")
                 return 'ok'
             else:
                 print('contract not found')
@@ -190,7 +193,6 @@ def order():
         except Exception as e:
             print(e)
         return "error"
-
 
     return "not supported"
 
@@ -282,7 +284,8 @@ def tasks():
 
                     if contract.code in subject or int(cid) == contract.id or sender == contract.email:
                         attachments = get_attachments(message)
-                        medsenger_api.send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments, send_from='patient')
+                        medsenger_api.send_message(contract.id, text="результаты снятия ЭКГ", attachments=attachments,
+                                                   send_from='patient')
 
                         medsenger_api.send_message(contract.id,
                                                    'Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ и какие ощущения Вы испытываете?',
@@ -340,7 +343,8 @@ def receive_ecg():
         if not filename or not data:
             abort(422, "No filename")
         else:
-            medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient', need_answer=True, attachments=[prepare_binary(filename, data)])
+            medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient',
+                                       need_answer=True, attachments=[prepare_binary(filename, data)])
             return 'ok'
 
     else:
@@ -358,9 +362,11 @@ def receive_ecg_test():
     </form>
     """
 
+
 @app.route('/app/', methods=['GET'])
 def app_page():
     return render_template('get_app.html')
+
 
 @app.route('/app', methods=['GET'])
 def app_page2():
@@ -378,11 +384,17 @@ def apple_deeplink():
                     "paths": [
                         "*"
                     ]
+                },
+                {
+                    "appID": "CRF22TKXX5.ru.bioss.cardio",
+                    "paths": [
+                        "*"
+                    ]
                 }
             ]
         }
-    }
-    )
+    })
+
 
 @app.route('/.well-known/assetlinks.json')
 def android_deeplink():
@@ -390,7 +402,8 @@ def android_deeplink():
         "relation": ["delegate_permission/common.handle_all_urls"],
         "target": {
             "namespace": "android_app", "package_name": "ru.bioss.ecgmob",
-            "sha256_cert_fingerprints": ["4F:56:2B:08:4C:6A:95:E9:4E:DA:96:B8:BA:8A:B5:EF:D5:3A:4C:6D:8D:B8:5E:DD:8F:76:AE:2A:B5:97:C1:E7"],
+            "sha256_cert_fingerprints": [
+                "4F:56:2B:08:4C:6A:95:E9:4E:DA:96:B8:BA:8A:B5:EF:D5:3A:4C:6D:8D:B8:5E:DD:8F:76:AE:2A:B5:97:C1:E7"],
         },
     }])
 
