@@ -1,31 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Сердечко: настройка канала консультирования</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
 </head>
 <body>
 <div class="container">
     <h4 style="margin-top: 15px; margin-bottom: 15px;">Сердечко: настройка канала консультирования</h4>
 
-    <p>Данный интеллектуальный агент умеет автоматически забирать письма из почтового ящика <i>cardio@medsenger.ru</i> и перенаправлять их в ленту врача, если в теме письма присутствует идентификатор пациента (СНИЛС).</p>
+    {% if error %}
+        <div class="alert alert-danger mb-3" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <p class="mb-3">Данный интеллектуальный агент умеет автоматически забирать письма из почтового ящика <i>cardio@medsenger.ru</i>
+        и
+        перенаправлять их в ленту врача, если в теме письма присутствует идентификатор пациента (СНИЛС).</p>
 
     <form method="POST">
-        <div class="form-group">
-            <strong>Идентификатор пациента (обычно - СНИЛС, указывается в настройках мобильного приложения, опционально):</strong>
-            <input type="text" name="code" {% if contract.code != None %} value="{{contract.code}}" {%endif%} class="form-control"/>
+
+        <div class="mb-3">
+            <label for="code1" class="form-label">Идентификатор пациента (обычно - СНИЛС, указывается в настройках
+                мобильного приложения,
+                опционально):</label>
+            <input type="text" class="form-control" name="code" id="code1" {% if contract.code != None %}
+                   value="{{ contract.code }}" {% endif %}/>
         </div>
 
-        <div class="form-group">
-            <strong>Почта устройства (опционально):</strong>
-            <input type="text" name="email" {% if contract.email != None %} value="{{contract.email}}" {%endif%} class="form-control" />
+        <div class="mb-3">
+            <label for="email1" class="form-label">Почта устройства (опционально):</label>
+            <input type="email" class="form-control" name="email" id="email1" {% if contract.email != None %}
+                   value="{{ contract.email }}" {% endif %}/>
         </div>
 
-        <div class="form-group">
-            <button class="btn-lg btn btn-success">Сохранить</button>
-        </div>
+        <input type="submit" class="btn-lg btn btn-success" value="Сохранить"/>
+
     </form>
 </div>
 </body>
