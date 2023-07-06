@@ -42,6 +42,23 @@ except:
     print('cant create structure')
 
 
+def send_init_message(contract):
+    contract_id = contract.id
+
+    agent_token = medsenger_api.get_agent_token(contract_id)
+    info = medsenger_api.get_patient_info(contract_id)
+
+    link = f"https://heart.medsenger.ru/app/?contract_id={contract.id}&agent_token={agent_token['agent_token']}&" \
+           f"birthdate={info['birthday']}&firstName={info['name'].split()[1]}&lastName={info['name'].split()[0]}&" \
+           f"gender={info['sex']}"
+
+    medsenger_api.send_message(contract_id,
+                               'Если у вас есть карманный монитор сердечного ритма "Сердечко", измерения ЭКГ '
+                               'могут автоматически поступать врачу. Для этого Вам нужно скачать приложение '
+                               '<strong>ECG mob</strong>, а затем нажать на кнопку "Подключить сердечко" ниже.',
+                               action_link=link, action_type='url', action_name='Подключить сердечко')
+
+
 def gts():
     now = datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
@@ -116,14 +133,10 @@ def init():
 
             print("{}: Add contract {}".format(gts(), contract.id))
 
+        send_init_message(contract)
         db.session.commit()
-
-        # medsenger_api.send_message(contract_id,
-        #                            f"""Подключена интеграция с карманным монитором сердечного ритма "Сердечко". Чтобы отправить ЭКГ врачу, вам нужно:<br><br><ul><li>установить мобильное приложение ECG Mob (<a target="_blank" href="https://apps.apple.com/ru/app/ecg-mob/id1406511388">iOS</a> / <a target="_blank" href="https://play.google.com/store/apps/details?id=ru.bioss.ecgmob&hl=ru&gl=US">Android</a>);</li><li>снять ЭКГ, используя прибор и мобильное приложение;</li><li>отправить PDF файл с ЭКГ в приложение Medsenger через меню "поделиться" (на Android) или просто отправить файл на почту <strong>{contract.email}</strong> (на iOS и Android).</ul><br>Для удобства, адрес <strong>{contract.email}</strong> можно записать в настройках приложения ECG mob.""",
-        #                            only_patient=True)
         medsenger_api.add_record(contract_id, 'doctor_action',
                                  f'Подключен прибор "Сердечко" {contract.code} / {contract.email}.')
-
 
     except Exception as e:
         print(e)
@@ -154,8 +167,6 @@ def remove():
             print("{}: Deactivate contract {}".format(gts(), contract.id))
         else:
             print('contract not found')
-
-
 
     except Exception as e:
         print(e)
@@ -209,8 +220,11 @@ def settings():
         query = Contracts.query.filter_by(id=contract_id)
         if query.count() != 0:
             contract = query.first()
+            send_init_message(contract)
         else:
-            return "<strong>Ошибка. Контракт не найден.</strong> Попробуйте отключить и снова подключить интеллектуальный агент к каналу консультирвоания. Если это не сработает, свяжитесь с технической поддержкой."
+            return "<strong>Ошибка. Контракт не найден.</strong> Попробуйте отключить и снова подключить " \
+                   "интеллектуальный агент к каналу консультирования. Если это не сработает, свяжитесь с технической " \
+                   "поддержкой."
 
     except Exception as e:
         print(e)
@@ -235,14 +249,16 @@ def setting_save():
             contract.email = request.form.get('email')
             db.session.commit()
         else:
-            return "<strong>Ошибка. Контракт не найден.</strong> Попробуйте отключить и снова подключить интеллектуальный агент к каналу консультирвоания. Если это не сработает, свяжитесь с технической поддержкой."
+            return "<strong>Ошибка. Контракт не найден.</strong> Попробуйте отключить и снова подключить " \
+                   "интеллектуальный агент к каналу консультирования. Если это не сработает, свяжитесь с технической " \
+                   "поддержкой."
 
     except Exception as e:
         print(e)
         return "error"
 
     return """
-        <strong>Спасибо, окно можно закрыть</strong><script>window.parent.postMessage('close-modal-success','*');</script>
+    <strong>Спасибо, окно можно закрыть</strong><script>window.parent.postMessage('close-modal-success','*');</script>
         """
 
 
@@ -288,7 +304,8 @@ def tasks():
                                                    send_from='patient')
 
                         medsenger_api.send_message(contract.id,
-                                                   'Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ и какие ощущения Вы испытываете?',
+                                                   'Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили '
+                                                   'снять ЭКГ и какие ощущения Вы испытываете?',
                                                    only_patient=True)
     except Exception as e:
         print(e)
@@ -312,7 +329,8 @@ def save_message():
         for attachment in data['message']['attachments']:
             if 'ecg_' in attachment['name']:
                 medsenger_api.send_message(data['contract_id'],
-                                           'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили снять ЭКГ и какие ощущения Вы испытываете?',
+                                           'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили '
+                                           'снять ЭКГ и какие ощущения Вы испытываете?',
                                            only_patient=True)
 
     return "ok"
