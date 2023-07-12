@@ -7,6 +7,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from medsenger_api import *
 from mail_api import *
+import tabula
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
@@ -335,6 +336,12 @@ def save_message():
 
     return "ok"
 
+def get_pulse_from_file(file):
+    tabl = tabula.read_pdf(file, pages='all', pandas_options={'header': None})
+    pulse = int(tabl[1].iloc[0, 5].rstrip(" уд/мин"))
+
+    return pulse
+
 
 @app.route('/api/receive', methods=['POST'])
 def receive_ecg():
@@ -361,8 +368,18 @@ def receive_ecg():
         if not filename or not data:
             abort(422, "No filename")
         else:
-            medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient',
+            try:
+                medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient',
                                        need_answer=True, attachments=[prepare_binary(filename, data)])
+            except Exception as e:
+                print("Error sending pdf:", e)
+
+            try:
+                pulse = get_pulse_from_file(file)
+                medsenger_api.add_record(contract_id, "pulse", pulse)
+            except Exception as e:
+                print("Error extracting pulse from pdf:", e)
+
             return 'ok'
 
     else:
