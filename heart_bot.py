@@ -385,18 +385,18 @@ def get_pulse_from_file(content):
 def receive_ecg():
     contract_id = request.form.get('contract_id')
 
-    # if not contract_id:
-    #     abort(422, "No contract_id")
-    #
-    # agent_token = request.form.get('agent_token')
-    #
-    # if not agent_token:
-    #     abort(422, "No agent_token")
-    #
-    # answer = medsenger_api.get_agent_token(contract_id)
-    #
-    # if not answer or answer.get('agent_token') != agent_token:
-    #     abort(422, "Incorrect token")
+    if not contract_id:
+        abort(422, "No contract_id")
+
+    agent_token = request.form.get('agent_token')
+
+    if not agent_token:
+        abort(422, "No agent_token")
+
+    answer = medsenger_api.get_agent_token(contract_id)
+
+    if not answer or answer.get('agent_token') != agent_token:
+        abort(422, "Incorrect token")
 
     if 'ecg' in request.files:
         file = request.files['ecg']
@@ -407,11 +407,11 @@ def receive_ecg():
         if not filename or not data:
             abort(422, "No filename")
         else:
-            # try:
-            #     medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient',
-            #                            need_answer=True, attachments=[prepare_binary(filename, data)])
-            # except Exception as e:
-            #     print("Error sending pdf:", e)
+            try:
+                medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient',
+                                       need_answer=True, attachments=[prepare_binary(filename, data)])
+            except Exception as e:
+                print("Error sending pdf:", e)
 
             try:
                 pulse = get_pulse_from_file(data)
