@@ -7,7 +7,10 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from medsenger_api import *
 from mail_api import *
-import tabula
+import pytesseract
+from pdf2image import convert_from_path
+from PIL import Image
+import os
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
@@ -336,9 +339,44 @@ def save_message():
 
     return "ok"
 
-def get_pulse_from_file(file):
-    tabl = tabula.read_pdf(file, pages='all', pandas_options={'header': None})
-    pulse = int(tabl[1].iloc[0, 5].rstrip(" уд/мин"))
+def get_pulse_from_file(content):
+    name = str(uuid.uuid4()) + '.pdf'
+
+    with open(f'./uploaded_files/{name}', 'wb') as path:
+        path.write(content)
+
+    files = convert_from_path('./uploaded_files/' + name)
+
+    results = []
+
+    for file in range(len(files)):
+        files[file].save(f'{str(file)}.jpg', 'JPEG')
+
+        image = Image.open(f'{str(file)}.jpg')
+        w, h = image.size
+        im_crop = image.crop((w // 1.26, 70, h // 1.5, w // 2 - 715))
+        text = pytesseract.image_to_string(im_crop, lang='rus')
+
+        if text == '':
+            (l, u, r, d) = (w // 2 + 550, 150, h // 1.5, w // 8.8)
+            im_crop1 = image.crop((l, u, r, d))
+            text = pytesseract.image_to_string(im_crop1, lang='rus')
+
+        new_text = text.split()
+        for word in new_text:
+            if word.isnumeric():
+                word = int(word)
+                results.append(word)
+
+    summa = 0
+    kolvo = 0
+
+    for counter in results:
+        summa += counter
+        kolvo += 1
+
+    pulse = summa // kolvo
+    os.remove(f"./uploaded_files/{name}")
 
     return pulse
 
@@ -347,35 +385,36 @@ def get_pulse_from_file(file):
 def receive_ecg():
     contract_id = request.form.get('contract_id')
 
-    if not contract_id:
-        abort(422, "No contract_id")
-
-    agent_token = request.form.get('agent_token')
-
-    if not agent_token:
-        abort(422, "No agent_token")
-
-    answer = medsenger_api.get_agent_token(contract_id)
-
-    if not answer or answer.get('agent_token') != agent_token:
-        abort(422, "Incorrect token")
+    # if not contract_id:
+    #     abort(422, "No contract_id")
+    #
+    # agent_token = request.form.get('agent_token')
+    #
+    # if not agent_token:
+    #     abort(422, "No agent_token")
+    #
+    # answer = medsenger_api.get_agent_token(contract_id)
+    #
+    # if not answer or answer.get('agent_token') != agent_token:
+    #     abort(422, "Incorrect token")
 
     if 'ecg' in request.files:
         file = request.files['ecg']
         filename = file.filename
+        print(filename)
         data = file.read()
 
         if not filename or not data:
             abort(422, "No filename")
         else:
-            try:
-                medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient',
-                                       need_answer=True, attachments=[prepare_binary(filename, data)])
-            except Exception as e:
-                print("Error sending pdf:", e)
+            # try:
+            #     medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient',
+            #                            need_answer=True, attachments=[prepare_binary(filename, data)])
+            # except Exception as e:
+            #     print("Error sending pdf:", e)
 
             try:
-                pulse = get_pulse_from_file(file)
+                pulse = get_pulse_from_file(data)
                 medsenger_api.add_record(contract_id, "pulse", pulse)
             except Exception as e:
                 print("Error extracting pulse from pdf:", e)
