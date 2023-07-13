@@ -413,11 +413,13 @@ def receive_ecg():
             except Exception as e:
                 print("Error sending pdf:", e)
 
+
             try:
                 pulse = get_pulse_from_file(data)
                 medsenger_api.add_record(contract_id, "pulse", pulse)
             except Exception as e:
                 print("Error extracting pulse from pdf:", e)
+
 
             return 'ok'
 

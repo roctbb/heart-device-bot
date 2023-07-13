@@ -3,6 +3,5 @@ Flask-SQLAlchemy
 psycopg2-binary
 requests
 apscheduler
-email
 medsenger_api
 tabula-py
