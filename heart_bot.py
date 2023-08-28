@@ -199,7 +199,7 @@ def order():
                 link = f"https://heart.medsenger.ru/app/?contract_id={contract_id}&agent_token={agent_token['agent_token']}&birthdate={info['birthday']}&firstName={info['name'].split()[1]}&lastName={info['name'].split()[0]}&gender={info['sex']}"
                 medsenger_api.send_message(contract_id,
                                            "Пожалуйста, сделайте ЭКГ с помощью сердечка в приложении EcgMob и отправьте результат врачу.",
-                                           link, "Сделать ЭКГ", only_patient=True, action_type="url")
+                                           link, "Сделать ЭКГ", only_patient=True, action_type="url", action_deadline=int(time.time()) + 3 * 60 * 60)
                 return 'ok'
             else:
                 print('contract not found')
@@ -310,7 +310,7 @@ def tasks():
                         medsenger_api.send_message(contract.id,
                                                    'Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили '
                                                    'снять ЭКГ и какие ощущения Вы испытываете?',
-                                                   only_patient=True)
+                                                   only_patient=True, action_deadline=int(time.time()) + 3 * 60 * 60)
     except Exception as e:
         print(e)
 
@@ -335,7 +335,7 @@ def save_message():
                 medsenger_api.send_message(data['contract_id'],
                                            'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили '
                                            'снять ЭКГ и какие ощущения Вы испытываете?',
-                                           only_patient=True)
+                                           only_patient=True, action_deadline=int(time.time()) + 3 * 60 * 60)
 
     return "ok"
 
