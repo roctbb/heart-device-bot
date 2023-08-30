@@ -141,11 +141,30 @@ def init():
         db.session.commit()
         medsenger_api.add_record(contract_id, 'doctor_action',
                                  f'Подключен прибор "Сердечко" {contract.code} / {contract.email}.')
+        medsenger_api.update_cache(contract_id)
 
     except Exception as e:
         print(e)
         return "error"
     return 'ok'
+
+
+@app.route('/actions', methods=['POST'])
+def actions():
+    data = request.json
+
+    if data['api_key'] != APP_KEY:
+        print('invalid key')
+        return 'invalid key'
+
+    contract_id = str(data['contract_id'])
+    agent_token = medsenger_api.get_agent_token(contract_id)
+    info = medsenger_api.get_patient_info(contract_id)
+
+    link = f"https://heart.medsenger.ru/app/?contract_id={contract_id}&agent_token={agent_token['agent_token']}&birthdate={info['birthday']}&firstName={info['name'].split()[1]}&lastName={info['name'].split()[0]}&gender={info['sex']}"
+    actions = [{'link': link, 'type': 'patient', 'name': "Сделать ЭКГ", "action_type": "app_url"}]
+
+    return jsonify(actions)
 
 
 @app.route('/remove', methods=['POST'])
@@ -199,7 +218,8 @@ def order():
                 link = f"https://heart.medsenger.ru/app/?contract_id={contract_id}&agent_token={agent_token['agent_token']}&birthdate={info['birthday']}&firstName={info['name'].split()[1]}&lastName={info['name'].split()[0]}&gender={info['sex']}"
                 medsenger_api.send_message(contract_id,
                                            "Пожалуйста, сделайте ЭКГ с помощью сердечка в приложении EcgMob и отправьте результат врачу.",
-                                           link, "Сделать ЭКГ", only_patient=True, action_type="url", action_deadline=int(time.time()) + 3 * 60 * 60)
+                                           link, "Сделать ЭКГ", only_patient=True, action_type="url",
+                                           action_deadline=int(time.time()) + 3 * 60 * 60)
                 return 'ok'
             else:
                 print('contract not found')
@@ -252,6 +272,7 @@ def setting_save():
             contract.code = request.form.get('code')
             contract.email = request.form.get('email')
             db.session.commit()
+            medsenger_api.update_cache(contract_id)
         else:
             return "<strong>Ошибка. Контракт не найден.</strong> Попробуйте отключить и снова подключить " \
                    "интеллектуальный агент к каналу консультирования. Если это не сработает, свяжитесь с технической " \
@@ -339,6 +360,7 @@ def save_message():
 
     return "ok"
 
+
 def get_pulse_from_file(content):
     name = str(uuid.uuid4()) + '.pdf'
 
@@ -409,17 +431,15 @@ def receive_ecg():
         else:
             try:
                 medsenger_api.send_message(contract_id, "Результаты снятия ЭКГ c Сердечка.", send_from='patient',
-                                       need_answer=True, attachments=[prepare_binary(filename, data)])
+                                           need_answer=True, attachments=[prepare_binary(filename, data)])
             except Exception as e:
                 print("Error sending pdf:", e)
-
 
             try:
                 pulse = get_pulse_from_file(data)
                 medsenger_api.add_record(contract_id, "pulse", pulse)
             except Exception as e:
                 print("Error extracting pulse from pdf:", e)
-
 
             return 'ok'
 
