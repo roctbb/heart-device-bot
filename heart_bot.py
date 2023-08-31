@@ -331,7 +331,7 @@ def tasks():
                         medsenger_api.send_message(contract.id,
                                                    'Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили '
                                                    'снять ЭКГ и какие ощущения Вы испытываете?',
-                                                   only_patient=True, action_deadline=int(time.time()) + 3 * 60 * 60)
+                                                   only_patient=True, action_deadline=int(time.time()) + 6 * 60 * 60)
     except Exception as e:
         print(e)
 
@@ -356,7 +356,7 @@ def save_message():
                 medsenger_api.send_message(data['contract_id'],
                                            'Похоже, что Вы прислали ЭКГ. Пожалуйста, напишите врачу, почему Вы решили '
                                            'снять ЭКГ и какие ощущения Вы испытываете?',
-                                           only_patient=True, action_deadline=int(time.time()) + 3 * 60 * 60)
+                                           only_patient=True, action_deadline=int(time.time()) + 6 * 60 * 60)
 
     return "ok"
 
