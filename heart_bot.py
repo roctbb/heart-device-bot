@@ -422,7 +422,10 @@ def receive_ecg():
 
     if 'ecg' in request.files:
         file = request.files['ecg']
-        filename = file.filename + '.pdf'
+        if '.pdf' not in file.filename:
+            filename = file.filename + '.pdf'
+        else:
+            filename = file.filename
         data = file.read()
 
         if not filename or not data:
